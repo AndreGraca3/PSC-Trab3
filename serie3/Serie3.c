@@ -310,23 +310,71 @@ cleanup_2:
 	
 }
 
-
-int main(int argc, char *argv[]) {
-	
-	Product *all_products = products_get();
-	User *all_users = users_get();
-	Cart *all_carts = carts_get();
-	
-	printf("\nid: %d, price: %f, description: %s, category: %s\n", all_products[10].id, all_products[10].price, all_products[10].description, all_products[10].category); 
-	
-	//printf("\nid: %d, name: %s\n", all_users[0].id, all_users[0].name); 
-
-	printf("\nuserId: %d, totalProducts: %ld, id: %d, quantity: %ld\n", all_carts[2].user_id, all_carts[2].n_products, all_carts[2].products[2].id, all_carts[2].products[2].quantity); 
-	
-	//free(all_products); //Free only removes the first element of all_products struct, so the remaining ones still exist in memory
-	//free(all_users);
-	
-	//free(all_carts);
-	
+void clearConsole(){
+	for (int y = 0; y < 25; y++) //console is 80 columns and 25 lines
+		printf("\n");
 }
 
+void swap(User *a, User *b) { // função auxiliar da função abaixo.
+	User t = *a;
+	*a = *b;
+	*b = t;
+}
+
+void showUsers(User *all_users){
+	int all_users_length = 30; // exitem 30 usuários, não sei como ir buscar a length XD
+	//organizar por ordem afabética
+	for (size_t i = 0; i < all_users_length; ++i)
+		for (size_t j = 0; j < all_users_length - i - 1; ++j)
+			if (strcmp(all_users[j].name, all_users[j + 1].name) > 0)
+				swap(&all_users[j], &all_users[j + 1]);
+	
+	printf("id   name      id   name      id     name\n");
+	for(int i = 0; i < all_users_length;){ // eu sei isto está bue scuffed XD but it works ok?
+		printf("%d   %s      ",all_users[i].id,all_users[i].name);
+		printf("%d   %s      ",all_users[i + 1].id,all_users[i + 1].name);
+		printf("%d   %s\n",all_users[i + 2].id,all_users[i + 2].name);
+		i += 3;
+	}
+			
+	/*while(all_users != NULL){ //problema : não existe terminador no nosso array de structs.
+		printf("%d   %s\n",all_users->id,all_users->name);
+		all_users++;
+	}*/
+	return;
+}
+
+
+int main(int argc, char *argv[]) {
+	User *all_users = users_get();
+	char option;
+	clearConsole();
+	printf("introduce u for an alphabetic ordered list of users\n");
+	printf("introduce c 'name'for carts lists\n");
+	printf("introduce s for exit the application\n");
+	
+	while(scanf(" %c", &option) != -1){
+		clearConsole();
+		if(option == 'u'){
+			printf("You selected option u.\n");
+			showUsers(all_users);
+		}
+		if(option == 'c'){
+			printf("You selected option c.\n");
+		}
+		if(option == 's') break;
+	}
+}
+
+
+/*switch(option){
+			case 'u':
+				printf("You selected option u.\n");
+				break;
+			case 'c':
+				printf("You selected option c.\n");
+				break;
+			case 's':
+				printf("You closed the app.\n");
+				break;
+		}*/
