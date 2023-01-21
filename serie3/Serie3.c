@@ -31,6 +31,21 @@ typedef struct {
 	} products[];
 } Cart;
 
+typedef struct {
+	Product **products_ptr; //equivalente a *products_ptr[]
+	size_t productsLen;
+} Products;
+
+typedef struct {
+	User **users_ptr;
+	size_t usersLen;
+} Users;
+
+typedef struct {
+	Cart **carts_ptr;
+	size_t cartsLen;
+} Carts;
+
 const char *urlProducts = "https://dummyjson.com/products";
 const char *urlUsers = "https://dummyjson.com/users";
 const char *urlCarts = "https://dummyjson.com/carts";
@@ -92,7 +107,7 @@ json_t *http_get_json_data(const char *url) {
 	return root;
 }
 
-Product *products_get() {
+Products* products_get() {
 	json_error_t error;
 	json_t *root = http_get_json_data(urlProducts);
 	size_t index;
@@ -111,9 +126,21 @@ Product *products_get() {
 	
 	size_t products_array_size = json_array_size(products_obj);
 	
-	Product *products = malloc(products_array_size * sizeof *products);
+	printf("\nOla1");
+	
+	Products *products_array = malloc(products_array_size * sizeof (Products)); //memoria desnecessaria
+	//products_array->products_ptr[products_array_size]; //isto pode ser desnecessario
+	//Product **ptr = products_array->products_ptr;
+	products_array->productsLen = products_array_size;
+	
+	printf("\nOla2");
+	printf("\narray size: %ld", products_array->productsLen);
+	
+	//Product *products = malloc(products_array_size * sizeof(Product));
 
 	json_array_foreach(products_obj, index, value) {
+		
+		printf("\nOla3");
 		json_t *id_obj = json_object_get(value, "id");
 		if ( !json_is_integer(id_obj)) {
 			fprintf(stderr, "id not found\n");
@@ -134,14 +161,34 @@ Product *products_get() {
 			fprintf(stderr, "category not found\n");
 			goto cleanup_2;
 		}
+		printf("\nOla4");
+		Product *product = malloc(sizeof(Product));
+		printf("\n product: %p", product);
+		printf("\n products_array: %p", products_array->products_ptr);
+		//products_array->products_ptr[index] = product;
+		//product = malloc(sizeof(Product));
 		
-		products[index].description = (char *)malloc(sizeof(char *) + 1);
-		products[index].category = (char *)malloc(sizeof(char *) + 1);
+		printf("\nAdeus");
+		product->id = json_integer_value(id_obj);
+		product->price = json_number_value(price_obj);
+		product->description = strdup(json_string_value(description_obj));
+		product->category = strdup(json_string_value(category_obj));
+		printf("\nid: %d, price: %f, description: %s, category: %s\n", product->id, product->price, product->description, product->category);
+		/*products_array->products_ptr[index]->id = json_integer_value(id_obj);
+		products_array->products_ptr[index]->price = json_number_value(price_obj);
+		products_array->products_ptr[index]->description = strdup(json_string_value(description_obj));
+		products_array->products_ptr[index]->category = strdup(json_string_value(category_obj));*/
 		
-		products[index].id = json_integer_value(id_obj);
-		products[index].price = json_number_value(price_obj);
-		products[index].description = json_string_value(description_obj);
-		products[index].category = json_string_value(category_obj);
+		//*(products_array->products_ptr + index) = &product;
+		//ptr++;
+		*(products_array->products_ptr + index) = product;
+		printf("\nOla5");
+		//printf("\nid: %d, price: %f, description: %s, category: %s\n", products_array->products_ptr[0]->id, products_array->products_ptr[0]->price, products_array->products_ptr[0]->description, products_array->products_ptr[0]->category);
+		printf("\n");
+		printf("\n");
+		printf("\n");
+		printf("\n");
+		
 	}
 	
 	//printf("\nid:%d, price:%f, description:%s, category:%s\n", products[0].id, products[0].price, products[0].description, products[0].category); 
@@ -150,17 +197,16 @@ Product *products_get() {
 	
 	//free(products);
 	
-	
-	
-	return products;
+	//free(root);
 	
 cleanup_2:
 	json_decref(root);
 	
+	return products_array;
 	
 }
 
-User *users_get() {
+/*User *users_get() {
 	json_error_t error;
 	json_t *root = http_get_json_data(urlUsers);
 	size_t index;
@@ -179,7 +225,7 @@ User *users_get() {
 	
 	size_t users_array_size = json_array_size(users_obj);
 	
-	User *users = malloc(users_array_size * sizeof *users);
+	User *users = malloc(users_array_size * sizeof (User));
 
 	json_array_foreach(users_obj, index, value) {
 		json_t *id_obj = json_object_get(value, "id");
@@ -193,25 +239,21 @@ User *users_get() {
 			goto cleanup_2;
 		}
 		
-		users[index].name = (char *)malloc(sizeof(char *) + 1);
-		
 		users[index].id = json_integer_value(id_obj);
-		users[index].name = json_string_value(name_obj);
+		users[index].name = strdup(json_string_value(name_obj));
 	}
 	
 	//printf("\nid:%d, price:%f, description:%s, category:%s\n", products[0].id, products[0].price, products[0].description, products[0].category); 
 	
-	//free(products);
-	
-	return users;
-	
 cleanup_2:
 	json_decref(root);
 	
+	return users;
 	
-}
+}*/
 
-Cart *carts_get() {
+
+/*Cart *carts_get() {
 	json_error_t error;
 	json_t *root = http_get_json_data(urlCarts);
 	size_t index1;
@@ -230,11 +272,23 @@ Cart *carts_get() {
 	
 	size_t carts_array_size = json_array_size(carts_obj);
 	
-	Cart *carts = malloc(carts_array_size * sizeof *carts);
+	json_t *firstElementOfCart = json_array_get(carts_obj, 0L);
 	
+	json_t *total_products_obj = json_object_get(firstElementOfCart, "totalProducts");
+	if ( !json_is_integer(total_products_obj)) {
+		fprintf(stderr, "totalProducts not found\n");
+		goto cleanup_2;
+	}
+	
+	Cart *carts = malloc((json_integer_value(total_products_obj) * sizeof carts->products[0] + sizeof *carts) * carts_array_size);
+	
+	
+	//Cart *cart_products;
 
+
+	int idx = 0;
 	json_array_foreach(carts_obj, index1, value1) {
-		int i = 0;
+		int idx = 0;
 		size_t index2;
 		json_t *value2;
 		
@@ -248,34 +302,33 @@ Cart *carts_get() {
 			fprintf(stderr, "totalProducts not found\n");
 			goto cleanup_2;
 		}
-		json_t *products_obj = json_object_get(value1, "products");
+		json_t *products_obj = 0;
+		products_obj = json_object_get(value1, "products");
 		if ( !json_is_array(products_obj)) {
 			fprintf(stderr, "products not found\n");
 			goto cleanup_2;
 		}
 		
-		carts[index1].user_id = json_integer_value(user_id_obj);
-		carts[index1].n_products = json_integer_value(n_products_obj);
-		size_t totalProducts = carts[index1].n_products;
+		//carts[index1].user_id = json_integer_value(user_id_obj);
+		//carts[index1].n_products = json_integer_value(n_products_obj);
+		//size_t totalProducts = carts[index1].n_products;
 		
-		/*size_t realSize = size * nmemb;
-		struct writeStruct *mem = (struct writeStruct *)fd;
-		
-		char *newMem = realloc(mem->memory, mem->size + realSize + 1);
-		
-		if(!newMem) {
-			printf("not enough memory\n");
-			return 0;
-		}
-		mem->memory = newMem;
-		memcpy(&(mem->memory[mem->size]), ptr, realSize);
-		mem->size += realSize;
-		mem->memory[mem->size] = 0;
-		
-		return realSize;*/
 		//carts[index1].products = malloc(totalProducts * sizeof(carts[index1]->products));
 		//newMem = cartscarts[index1].products
 		//newMem = maloc
+		
+		//size_t totalProducts = json_integer_value(n_products_obj);
+		
+		//carts_products = malloc(sizeof *carts + (totalProducts * sizeof carts->products[0]));
+		
+		//int sizeOfACart = sizeof *carts + (totalProducts * sizeof carts->products[0]);
+		
+		//carts[index1].user_id = json_integer_value(user_id_obj);
+		//carts[index1].n_products = json_integer_value(n_products_obj);
+		//carts[index1].products = 
+		
+		printf("\n indx1: %ld", index1);
+		printf("\n");
 		
 		json_array_foreach(products_obj, index2, value2) {
 			json_t *id_obj = json_object_get(value2, "id");
@@ -289,92 +342,97 @@ Cart *carts_get() {
 				goto cleanup_2;
 			}
 			
-			carts[index1].products[index2].id = json_integer_value(id_obj);
-			int id_Product = carts[index1].products[index2].id;
+			carts[index1].user_id = json_integer_value(user_id_obj);
+			carts[index1].n_products = json_integer_value(n_products_obj);
+			S
+			carts[index1].products[index2].id = json_number_value(id_obj);
+			printf("\n user_id: %d, id: %d, index1: %ld, index2: %ld, idx: %d", carts[0].user_id, carts[0].products[index2].id, index1, index2, idx);
 			carts[index1].products[index2].quantity = json_integer_value(quantity_obj);
-			int quant = carts[index1].products[index2].quantity;
-			printf("\n%d", i);
-			++i;
-			
+			//++idx;
 		}
+		//printf("\nuserId: %d, totalProducts: %ld, id: %d, quantity: %ld\n", carts[0].user_id, carts[0].n_products, carts[0].products->id, carts[0].products->quantity);
+		printf("\n");
+		printf("\n indx1: %ld", index1);
+		//++idx;
+		int j;
 	}
 	
-	//printf("\nid:%d, price:%f, description:%s, category:%s\n", products[0].id, products[0].price, products[0].description, products[0].category); 
-	
-	//free(products);
-	
-	return carts;
+	//printf("\nuserId: %d, totalProducts: %ld, id: %d, quantity: %ld\n", carts[0].user_id, carts[0].n_products, carts[0].products->id, carts[0].products->quantity);
 	
 cleanup_2:
 	json_decref(root);
 	
-}
-
-void clearConsole(){
-	for (int y = 0; y < 25; y++) //console is 80 columns and 25 lines
-		printf("\n");
-}
-
-void swap(User *a, User *b) { // função auxiliar da função abaixo.
-	User t = *a;
-	*a = *b;
-	*b = t;
-}
-
-void showUsers(User *all_users){
-	int all_users_length = 30; // exitem 30 usuários, não sei como ir buscar a length XD
-	//organizar por ordem afabética
-	for (size_t i = 0; i < all_users_length; ++i)
-		for (size_t j = 0; j < all_users_length - i - 1; ++j)
-			if (strcmp(all_users[j].name, all_users[j + 1].name) > 0)
-				swap(&all_users[j], &all_users[j + 1]);
+	return carts;
 	
-	printf("id   name      id   name      id     name\n");
-	for(int i = 0; i < all_users_length;){ // eu sei isto está bue scuffed XD but it works ok?
-		printf("%d   %s      ",all_users[i].id,all_users[i].name);
-		printf("%d   %s      ",all_users[i + 1].id,all_users[i + 1].name);
-		printf("%d   %s\n",all_users[i + 2].id,all_users[i + 2].name);
-		i += 3;
-	}
-			
-	/*while(all_users != NULL){ //problema : não existe terminador no nosso array de structs.
-		printf("%d   %s\n",all_users->id,all_users->name);
-		all_users++;
-	}*/
-	return;
-}
+}*/
 
 
 int main(int argc, char *argv[]) {
-	User *all_users = users_get();
-	char option;
-	clearConsole();
-	printf("introduce u for an alphabetic ordered list of users\n");
-	printf("introduce c 'name'for carts lists\n");
-	printf("introduce s for exit the application\n");
+	int result = -1;	
+	size_t i = 0;
+	//json_t *root;
+	/*if (argc != 2) {
+		fprintf(stderr, "usage: %s <url>\n", argv[0]);
+		return 1;
+	}*/
 	
-	while(scanf(" %c", &option) != -1){
-		clearConsole();
-		if(option == 'u'){
-			printf("You selected option u.\n");
-			showUsers(all_users);
-		}
-		if(option == 'c'){
-			printf("You selected option c.\n");
-		}
-		if(option == 's') break;
+	//json_error_t error;
+	//root = http_get_json_data(argv[1]);
+	/*
+	if (!json_is_object(root)) {
+		fprintf(stderr, "***error: on line %d: %s\n", error.line, error.text);
+		goto cleanup_1;
+	}*/
+	
+	//Product *all_products = products_get();
+	//User *all_users = users_get();
+	//Cart *all_carts = carts_get();
+	
+	Products *all_products = products_get();
+	
+	//printf("\nid: %d, price: %f, description: %s, category: %s\n", all_products->products_ptr[10]->id, all_products->products_ptr[10]->price, all_products->products_ptr[10]->description, all_products->products_ptr[10]->category); 
+	
+	//printf("\nid: %d, name: %s\n", all_users[0].id, all_users[0].name); 
+
+	//printf("\nuserId: %d, totalProducts: %ld, id: %d, quantity: %ld\n", all_carts[0].user_id, all_carts[0].n_products, all_carts[0].products[0].id, all_carts[0].products[0].quantity);
+	
+	
+	int products_num_elem = 30;
+	//int users_num_elem = 30;
+	
+	for(i = 0; i < products_num_elem; ++i) {
+		free((void *)all_products->products_ptr[i]->description);
+		free((void *)all_products->products_ptr[i]->category);
 	}
+	
+	free(all_products);
+	
+	/*for(i = 0; i < users_num_elem; ++i) {
+		free((void *)all_users[i].name);
+	}*/
+	
+	//free(all_users);
+	
+	/*for(size_t i = 0; i < products_num_elem; ++i) {
+		free((void *)all_products[i].description);
+		free((void *)all_products[i].category);
+	}*/
+	
+	//free(all_carts);
+	
+	/*json_t *title_obj = json_object_get(root, "title");
+	if ( !json_is_string(title_obj)) {
+		fprintf(stderr, "title not found\n");
+		goto cleanup_2;
+	}
+	printf("%s\n", json_string_value(title_obj));*/
+	
+/*cleanup_2:
+	json_decref(root);
+
+cleanup_1:
+	return result;
+	*/
+	//free(root);
 }
 
-
-/*switch(option){
-			case 'u':
-				printf("You selected option u.\n");
-				break;
-			case 'c':
-				printf("You selected option c.\n");
-				break;
-			case 's':
-				printf("You closed the app.\n");
-				break;
-		}*/
