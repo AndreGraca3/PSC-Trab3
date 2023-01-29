@@ -22,7 +22,7 @@ typedef struct {
 //const char *urlProducts = "https://dummyjson.com/products";
 
 Products* products_get() {
-	const char *urlProducts = "https://dummyjson.com/products";
+	const char *urlProducts = "https://dummyjson.com/products?limit=100";
 	json_error_t error;
 	json_t *root = http_get_json_data(urlProducts);
 	size_t index;
