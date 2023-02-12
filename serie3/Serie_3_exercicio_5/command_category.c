@@ -12,7 +12,7 @@ typedef struct{
 	int times;
 } Category;
 
-void ShowCategory(Users *users, Products *products, Carts *carts){
+void command_function(Users *users, Products *products, Carts *carts){
 	
 	Category arr[products->productsLen];	
 	arr[0].category = products->products_array[0]->category;

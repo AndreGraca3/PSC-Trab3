@@ -16,6 +16,62 @@ typedef struct{
 	size_t tempLen;
 } temp;
 
+void createFiles(Users *all_users, Products *all_products, Carts *all_carts){
+	FILE *productsFile;
+	FILE *usersFile;
+	FILE *cartsFile;
+	
+	size_t i = 0;
+	
+	productsFile = fopen("Products.csv", "w");
+	
+	fprintf(productsFile, "id, price, description, category\n");
+	
+	for(i = 0; i < all_products->productsLen; ++i) {
+		fprintf(productsFile, "%d, %.3f, %s, %s\n", all_products->products_array[i]->id, all_products->products_array[i]->price, all_products->products_array[i]->description, all_products->products_array[i]->category); 
+	}
+	
+	if(ferror(productsFile)) {
+		printf("Error writing to file");
+	}
+	
+	fclose(productsFile);
+	
+	usersFile = fopen("Users.csv", "w");
+	
+	fprintf(usersFile, "id, name\n");
+	
+	for(i = 0; i < all_users->usersLen; ++i) {
+		fprintf(usersFile, "%d, %s\n", all_users->users_array[i]->id, all_users->users_array[i]->name); 
+	}
+	
+	if(ferror(usersFile)) {
+		printf("Error writing to file");
+	}
+	
+	fclose(usersFile);
+	
+	cartsFile = fopen("Carts.csv", "w");
+	
+	fprintf(cartsFile, "userId, totalProducts, id, quantity\n");
+	
+	for(i = 0; i < all_carts->cartsLen; ++i) {
+		for(size_t j = 0; j < all_carts->carts_array[i]->n_products; ++j) {
+			fprintf(cartsFile, "%d, %ld, %d, %ld\n", all_carts->carts_array[i]->user_id, all_carts->carts_array[i]->n_products, all_carts->carts_array[i]->products[j].id, all_carts->carts_array[i]->products[j].quantity);
+		}
+	}
+	
+	if(ferror(cartsFile)) {
+		printf("Error writing to file");
+	}
+	
+	fclose(cartsFile);
+	
+	printf("Files created successfully!\n");
+
+}
+
+
 void showCarts(Users *all_users, Products *all_products, Carts *all_carts){
 	temp tempCarts[all_users->usersLen];
 	size_t tempLen = 0;
@@ -128,7 +184,7 @@ static void commandNew(Users *unused1, Products *unused2, Carts *unused3) {
 		fprintf(stderr, "%s\n", dlerror());
 		return;
 	}
-	void (*f)(Users *, Products *, Carts *) = dlsym(handle, "ShowCategory");
+	void (*f)(Users *, Products *, Carts *) = dlsym(handle, "command_function");
 	if (f == NULL) {
 		fprintf(stderr, "%s\n", dlerror());
 		return;
@@ -163,12 +219,14 @@ int main() {
 	printf("introduce u for an alphabetic ordered list of users\n");
 	printf("introduce c 'name'for carts lists\n");
 	printf("introduce s for exit the application\n");
+	printf("introduce f for create csv files test\n");
 	printf("introduce l for new command incorporation\n");
 	char line[100];
 	command_insert('s', leaveProgram);
 	command_insert('l', commandNew);
 	command_insert('u', showUsers);
 	command_insert('c', showCarts);
+	command_insert('f', createFiles);
 
 	while (1) {
 		putchar('>');
